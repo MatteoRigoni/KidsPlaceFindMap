@@ -1,0 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(28 7% 11%);
+  --card: hsl(240 6% 97%);
+  --card-foreground: hsl(28 7% 11%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(28 7% 11%);
+  --primary: hsl(208 100% 50%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(240 5% 84%);
+  --secondary-foreground: hsl(28 7% 11%);
+  --muted: hsl(240 1% 94%);
+  --muted-foreground: hsl(240 4% 46%);
+  --accent: hsl(240 5% 94%);
+  --accent-foreground: hsl(28 7% 11%);
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(240 6% 90%);
+  --input: hsl(240 6% 90%);
+  --ring: hsl(208 100% 50%);
+  --chart-1: hsl(208 100% 50%);
+  --chart-2: hsl(142 76% 36%);
+  --chart-3: hsl(39 100% 50%);
+  --chart-4: hsl(142 76% 42%);
+  --chart-5: hsl(326 75% 51%);
+  --sidebar: hsl(240 6% 97%);
+  --sidebar-foreground: hsl(28 7% 11%);
+  --sidebar-primary: hsl(208 100% 50%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 5% 94%);
+  --sidebar-accent-foreground: hsl(28 7% 11%);
+  --sidebar-border: hsl(240 6% 90%);
+  --sidebar-ring: hsl(208 100% 50%);
+  
+  /* Custom map colors */
+  --map-blue: hsl(208 100% 50%);
+  --park-green: hsl(142 76% 36%);
+  --light-bg: hsl(240 6% 97%);
+  --text-dark: hsl(28 7% 11%);
+  --accent-orange: hsl(39 100% 50%);
+  --marker-purple: hsl(291 64% 42%);
+  
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: hsl(0 0% 0%);
+  --foreground: hsl(0 0% 95%);
+  --card: hsl(240 10% 4%);
+  --card-foreground: hsl(0 0% 95%);
+  --popover: hsl(240 10% 4%);
+  --popover-foreground: hsl(0 0% 95%);
+  --primary: hsl(208 100% 50%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(240 4% 16%);
+  --secondary-foreground: hsl(0 0% 95%);
+  --muted: hsl(240 4% 16%);
+  --muted-foreground: hsl(240 5% 65%);
+  --accent: hsl(240 4% 16%);
+  --accent-foreground: hsl(0 0% 95%);
+  --destructive: hsl(0 63% 31%);
+  --destructive-foreground: hsl(0 0% 95%);
+  --border: hsl(240 6% 20%);
+  --input: hsl(240 6% 20%);
+  --ring: hsl(208 100% 50%);
+  --chart-1: hsl(208 100% 50%);
+  --chart-2: hsl(142 76% 36%);
+  --chart-3: hsl(39 100% 50%);
+  --chart-4: hsl(142 76% 42%);
+  --chart-5: hsl(326 75% 51%);
+  --sidebar: hsl(240 10% 4%);
+  --sidebar-foreground: hsl(0 0% 95%);
+  --sidebar-primary: hsl(208 100% 50%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 4% 16%);
+  --sidebar-accent-foreground: hsl(0 0% 95%);
+  --sidebar-border: hsl(240 6% 20%);
+  --sidebar-ring: hsl(208 100% 50%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .custom-marker {
+    @apply rounded-full border-2 border-white shadow-lg;
+  }
+  
+  .toggle-switch {
+    @apply w-11 h-6 rounded-full relative transition-colors duration-200;
+  }
+  
+  .toggle-slider {
+    @apply w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform duration-200;
+  }
+  
+  .venue-filter-active .toggle-slider {
+    @apply translate-x-5;
+  }
+  
+  .venue-filter-inactive .toggle-slider {
+    @apply translate-x-0.5;
+  }
+  
+  .venue-filter-inactive .toggle-switch {
+    @apply bg-gray-300;
+  }
+}
+
+/* Leaflet custom styles */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-popup-tip {
+  background: white;
+}
+
+.leaflet-container {
+  font-family: Inter, system-ui, sans-serif;
+}
