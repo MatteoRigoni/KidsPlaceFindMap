@@ -134,4 +134,17 @@
 
 .leaflet-container {
   font-family: Inter, system-ui, sans-serif;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* Ensure map tiles load properly */
+.leaflet-tile {
+  filter: none !important;
+}
+
+/* Fix for map rendering issues */
+.leaflet-map-pane svg,
+.leaflet-map-pane canvas {
+  pointer-events: auto;
 }

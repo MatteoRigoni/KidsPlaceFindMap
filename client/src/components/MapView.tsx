@@ -90,8 +90,17 @@ export default function MapView({ currentLocation, activeFilters }: MapViewProps
         ref={mapRef}
         center={[currentLocation.lat, currentLocation.lng]}
         zoom={13}
+        style={{ height: '100%', width: '100%' }}
         className="w-full h-full"
         zoomControl={false}
+        whenReady={() => {
+          // Force map to resize after it's ready
+          setTimeout(() => {
+            if (mapRef.current) {
+              mapRef.current.invalidateSize();
+            }
+          }, 100);
+        }}
       >
         <TileLayer
           attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
