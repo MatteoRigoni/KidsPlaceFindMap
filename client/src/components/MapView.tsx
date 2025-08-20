@@ -64,7 +64,7 @@ export default function MapView({ currentLocation, activeFilters }: MapViewProps
 
   const getIcon = (iconName: string) => {
     const iconMap: Record<string, any> = {
-      baby: LucideIcons.Baby,
+      users: LucideIcons.Users,
       trees: LucideIcons.Trees,
       building: LucideIcons.Building,
       palette: LucideIcons.Palette,

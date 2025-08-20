@@ -63,7 +63,7 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export const VENUE_TYPE_CONFIG = {
   playground: { 
     query: 'leisure=playground', 
-    icon: 'baby', 
+    icon: 'users', 
     color: '#34C759',
     name: 'Playgrounds'
   },
