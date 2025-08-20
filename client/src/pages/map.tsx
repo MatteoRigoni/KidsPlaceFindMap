@@ -81,7 +81,7 @@ export default function MapPage() {
         )}
 
         {/* Search bar - centered horizontally outside left panel */}
-        <div className={`absolute top-4 z-[1000] w-full max-w-md ${isMobile ? 'left-1/2 transform -translate-x-1/2 px-4' : 'left-1/2 transform -translate-x-1/2 ml-40'}`}>
+        <div className={`absolute top-4 z-[1000] w-full max-w-md ${isMobile ? 'left-1/2 transform -translate-x-1/2 px-4' : 'left-80 right-0 transform translate-x-1/2'}`}>
           <SearchBar onLocationSelect={handleLocationSelect} />
         </div>
 
