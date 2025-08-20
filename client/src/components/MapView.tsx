@@ -24,6 +24,20 @@ interface MapViewProps {
   activeFilters: Set<VenueType>;
 }
 
+// Helper function to get Lucide icons
+const getIcon = (iconName: string) => {
+  const iconMap: Record<string, any> = {
+    users: LucideIcons.Users,
+    trees: LucideIcons.Trees,
+    building: LucideIcons.Building,
+    palette: LucideIcons.Palette,
+    atom: LucideIcons.Atom,
+    globe: LucideIcons.Globe,
+    waves: LucideIcons.Waves,
+  };
+  return iconMap[iconName] || LucideIcons.MapPin;
+};
+
 // Component to update map view when location changes
 function MapUpdater({ location }: { location: Location }) {
   const map = useMap();
@@ -164,19 +178,6 @@ export default function MapView({ currentLocation, activeFilters }: MapViewProps
   useEffect(() => {
     refetch();
   }, [activeFilters, currentLocation, refetch]);
-
-  const getIcon = (iconName: string) => {
-    const iconMap: Record<string, any> = {
-      users: LucideIcons.Users,
-      trees: LucideIcons.Trees,
-      building: LucideIcons.Building,
-      palette: LucideIcons.Palette,
-      atom: LucideIcons.Atom,
-      globe: LucideIcons.Globe,
-      waves: LucideIcons.Waves,
-    };
-    return iconMap[iconName] || LucideIcons.MapPin;
-  };
 
   return (
     <div className="w-full h-full relative">
