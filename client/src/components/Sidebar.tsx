@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { X, LogIn, LogOut, User } from "lucide-react";
 import { type VenueType } from "@shared/schema";
 import { VENUE_TYPE_CONFIG } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import AuthModal from "./AuthModal";
 import * as LucideIcons from "lucide-react";
 
 interface SidebarProps {
@@ -27,6 +31,21 @@ const getIcon = (iconName: string) => {
 
 export default function Sidebar({ activeFilters, onToggleFilter, onClose, showCloseButton }: SidebarProps) {
   const { isAuthenticated, user, isLoading } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", "/api/auth/logout", {});
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(["/api/auth/user"], null);
+    },
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
   
   return (
     <div className="h-full flex flex-col">
@@ -71,17 +90,18 @@ export default function Sidebar({ activeFilters, onToggleFilter, onClose, showCl
                 </span>
               </div>
               <Button
-                onClick={() => window.location.href = '/api/logout'}
+                onClick={handleLogout}
                 variant="ghost"
                 size="sm"
                 className="text-gray-500 hover:text-gray-700"
+                disabled={logoutMutation.isPending}
               >
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
           ) : (
             <Button
-              onClick={() => window.location.href = '/api/login'}
+              onClick={() => setAuthModalOpen(true)}
               variant="outline"
               size="sm"
               className="w-full"
@@ -92,6 +112,9 @@ export default function Sidebar({ activeFilters, onToggleFilter, onClose, showCl
           )}
         </div>
       </div>
+
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
+      
       {/* Filters */}
       <div className="p-6 flex-1">
         <h2 className="text-lg font-medium mb-4 text-text-dark">Place Types</h2>

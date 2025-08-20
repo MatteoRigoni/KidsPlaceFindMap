@@ -10,6 +10,7 @@ import {
   type Location
 } from "@shared/schema";
 import { z } from "zod";
+import passport from "passport";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 
@@ -155,21 +156,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticated, async (req, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      res.json(req.user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
+  // Local registration and login
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const { email, password, firstName, lastName } = req.body;
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+      
+      // Hash password
+      const bcrypt = require('bcrypt');
+      const passwordHash = await bcrypt.hash(password, 10);
+      
+      // Create user
+      const user = await storage.createUser({
+        email,
+        firstName,
+        lastName,
+        passwordHash,
+        provider: 'local'
+      });
+      
+      // Log user in
+      req.login(user, (err) => {
+        if (err) return res.status(500).json({ message: "Login failed" });
+        res.json(user);
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  app.post('/api/auth/login', passport.authenticate('local'), (req, res) => {
+    res.json(req.user);
+  });
+
+  // OAuth routes
+  app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+  app.get('/api/auth/google/callback', 
+    passport.authenticate('google', { failureRedirect: '/' }),
+    (req, res) => res.redirect('/')
+  );
+
+  app.get('/api/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
+  app.get('/api/auth/github/callback',
+    passport.authenticate('github', { failureRedirect: '/' }),
+    (req, res) => res.redirect('/')
+  );
+
+  app.post('/api/auth/logout', (req, res) => {
+    req.logout((err) => {
+      if (err) return res.status(500).json({ message: "Logout failed" });
+      res.json({ message: "Logged out" });
+    });
+  });
+
   // Favorites routes
   app.get('/api/favorites', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const favorites = await storage.getUserFavorites(userId);
       res.json(favorites);
     } catch (error) {
@@ -180,7 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/favorites', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const favoriteData = insertUserFavoriteSchema.parse({
         ...req.body,
         userId
@@ -196,7 +254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/favorites/:venueId', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { venueId } = req.params;
       
       await storage.removeUserFavorite(userId, venueId);
@@ -210,7 +268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Visited routes
   app.get('/api/visited', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const visited = await storage.getUserVisited(userId);
       res.json(visited);
     } catch (error) {
@@ -221,7 +279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/visited', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const visitedData = insertUserVisitedSchema.parse({
         ...req.body,
         userId
@@ -237,7 +295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/visited/:venueId', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { venueId } = req.params;
       
       await storage.removeUserVisited(userId, venueId);
@@ -251,7 +309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Check if venue is favorite or visited
   app.get('/api/venue/:venueId/status', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { venueId } = req.params;
       
       const [isFavorite, isVisited] = await Promise.all([
