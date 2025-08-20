@@ -44,7 +44,6 @@ export default function Sidebar({ activeFilters, onToggleFilter, onClose, showCl
         </div>
         <p className="text-sm text-gray-600 mt-2">Discover amazing places for kids</p>
       </div>
-
       {/* Filters */}
       <div className="p-6 flex-1">
         <h2 className="text-lg font-medium mb-4 text-text-dark">Place Types</h2>
@@ -57,10 +56,7 @@ export default function Sidebar({ activeFilters, onToggleFilter, onClose, showCl
               <div
                 key={venueType}
                 onClick={() => onToggleFilter(venueType as VenueType)}
-                className={`
-                  venue-filter flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors
-                  ${isActive ? 'venue-filter-active bg-light-bg' : 'venue-filter-inactive bg-gray-50 hover:bg-gray-100'}
-                `}
+                className="venue-filter flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors venue-filter-active bg-light-bg text-[12px]"
               >
                 <div className="flex items-center space-x-3">
                   <div 
