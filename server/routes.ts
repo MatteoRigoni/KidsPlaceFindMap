@@ -3,13 +3,20 @@ import { createServer, type Server } from "http";
 import { 
   venueSearchRequestSchema, 
   locationSearchRequestSchema,
+  insertUserFavoriteSchema,
+  insertUserVisitedSchema,
   VENUE_TYPE_CONFIG,
   type Venue,
   type Location
 } from "@shared/schema";
 import { z } from "zod";
+import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Auth middleware
+  await setupAuth(app);
   
   // Search for venues using Overpass API
   app.post("/api/venues/search", async (req, res) => {
@@ -144,6 +151,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error searching locations:', error);
       res.status(500).json({ error: 'Failed to search locations' });
+    }
+  });
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Favorites routes
+  app.get('/api/favorites', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const favorites = await storage.getUserFavorites(userId);
+      res.json(favorites);
+    } catch (error) {
+      console.error("Error fetching favorites:", error);
+      res.status(500).json({ message: "Failed to fetch favorites" });
+    }
+  });
+
+  app.post('/api/favorites', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const favoriteData = insertUserFavoriteSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const favorite = await storage.addUserFavorite(favoriteData);
+      res.json(favorite);
+    } catch (error) {
+      console.error("Error adding favorite:", error);
+      res.status(500).json({ message: "Failed to add favorite" });
+    }
+  });
+
+  app.delete('/api/favorites/:venueId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { venueId } = req.params;
+      
+      await storage.removeUserFavorite(userId, venueId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing favorite:", error);
+      res.status(500).json({ message: "Failed to remove favorite" });
+    }
+  });
+
+  // Visited routes
+  app.get('/api/visited', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const visited = await storage.getUserVisited(userId);
+      res.json(visited);
+    } catch (error) {
+      console.error("Error fetching visited:", error);
+      res.status(500).json({ message: "Failed to fetch visited places" });
+    }
+  });
+
+  app.post('/api/visited', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const visitedData = insertUserVisitedSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const visited = await storage.addUserVisited(visitedData);
+      res.json(visited);
+    } catch (error) {
+      console.error("Error adding visited:", error);
+      res.status(500).json({ message: "Failed to add visited place" });
+    }
+  });
+
+  app.delete('/api/visited/:venueId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { venueId } = req.params;
+      
+      await storage.removeUserVisited(userId, venueId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing visited:", error);
+      res.status(500).json({ message: "Failed to remove visited place" });
+    }
+  });
+
+  // Check if venue is favorite or visited
+  app.get('/api/venue/:venueId/status', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { venueId } = req.params;
+      
+      const [isFavorite, isVisited] = await Promise.all([
+        storage.isUserFavorite(userId, venueId),
+        storage.isUserVisited(userId, venueId),
+      ]);
+      
+      res.json({ isFavorite, isVisited });
+    } catch (error) {
+      console.error("Error checking venue status:", error);
+      res.status(500).json({ message: "Failed to check venue status" });
     }
   });
 

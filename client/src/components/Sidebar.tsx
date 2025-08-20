@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, LogIn, LogOut, User } from "lucide-react";
 import { type VenueType } from "@shared/schema";
 import { VENUE_TYPE_CONFIG } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
 import * as LucideIcons from "lucide-react";
 
 interface SidebarProps {
@@ -25,6 +26,8 @@ const getIcon = (iconName: string) => {
 };
 
 export default function Sidebar({ activeFilters, onToggleFilter, onClose, showCloseButton }: SidebarProps) {
+  const { isAuthenticated, user, isLoading } = useAuth();
+  
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -43,6 +46,51 @@ export default function Sidebar({ activeFilters, onToggleFilter, onClose, showCl
           )}
         </div>
         <p className="text-sm text-gray-600 mt-2">Discover amazing places for kids</p>
+        
+        {/* Auth Section */}
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          {isLoading ? (
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+              <span>Loading...</span>
+            </div>
+          ) : isAuthenticated ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                {(user as any)?.profileImageUrl ? (
+                  <img 
+                    src={(user as any).profileImageUrl} 
+                    alt="Profile" 
+                    className="w-6 h-6 rounded-full"
+                  />
+                ) : (
+                  <User className="w-5 h-5 text-gray-500" />
+                )}
+                <span className="text-sm text-gray-700 truncate">
+                  {(user as any)?.firstName || (user as any)?.email || 'User'}
+                </span>
+              </div>
+              <Button
+                onClick={() => window.location.href = '/api/logout'}
+                variant="ghost"
+                size="sm"
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={() => window.location.href = '/api/login'}
+              variant="outline"
+              size="sm"
+              className="w-full"
+            >
+              <LogIn className="w-4 h-4 mr-2" />
+              Sign In
+            </Button>
+          )}
+        </div>
       </div>
       {/* Filters */}
       <div className="p-6 flex-1">

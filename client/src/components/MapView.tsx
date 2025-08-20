@@ -1,7 +1,13 @@
 import { useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
+import { Button } from "@/components/ui/button";
+import { Heart, Check, MapPin as MapPinIcon } from "lucide-react";
 import { useVenues } from "@/hooks/useVenues";
+import { useAuth } from "@/hooks/useAuth";
+import { useAddFavorite, useRemoveFavorite } from "@/hooks/useFavorites";
+import { useAddVisited, useRemoveVisited } from "@/hooks/useVisited";
+import { useVenueStatus } from "@/hooks/useVenueStatus";
 import { type Location, type VenueType, type Venue, VENUE_TYPE_CONFIG } from "@shared/schema";
 import * as LucideIcons from "lucide-react";
 
@@ -48,6 +54,89 @@ const createMarkerIcon = (venueType: VenueType) => {
     popupAnchor: [0, -16]
   });
 };
+
+// Venue popup component
+function VenuePopup({ venue }: { venue: Venue }) {
+  const { isAuthenticated } = useAuth();
+  const { isFavorite, isVisited, isLoading: statusLoading } = useVenueStatus(venue.id);
+  
+  const addFavorite = useAddFavorite();
+  const removeFavorite = useRemoveFavorite();
+  const addVisited = useAddVisited();
+  const removeVisited = useRemoveVisited();
+  
+  const IconComponent = getIcon(VENUE_TYPE_CONFIG[venue.type].icon);
+  
+  const handleFavoriteClick = () => {
+    if (isFavorite) {
+      removeFavorite.mutate(venue.id);
+    } else {
+      addFavorite.mutate(venue);
+    }
+  };
+  
+  const handleVisitedClick = () => {
+    if (isVisited) {
+      removeVisited.mutate(venue.id);
+    } else {
+      addVisited.mutate(venue);
+    }
+  };
+  
+  return (
+    <div className="p-3 min-w-64">
+      <h3 className="font-semibold text-text-dark mb-2">{venue.name}</h3>
+      <div className="flex items-center mb-2">
+        <IconComponent 
+          className="w-4 h-4 mr-2" 
+          style={{ color: VENUE_TYPE_CONFIG[venue.type].color }}
+        />
+        <span className="text-sm text-gray-600">
+          {VENUE_TYPE_CONFIG[venue.type].name}
+        </span>
+      </div>
+      {venue.address && (
+        <p className="text-sm text-gray-600 mb-2">
+          <MapPinIcon className="w-3 h-3 inline mr-1" />
+          {venue.address}
+        </p>
+      )}
+      {venue.description && (
+        <p className="text-sm text-gray-700 mb-3">{venue.description}</p>
+      )}
+      
+      {/* Action buttons for authenticated users */}
+      {isAuthenticated && (
+        <div className="flex space-x-2 pt-2 border-t border-gray-100">
+          <Button
+            onClick={handleFavoriteClick}
+            variant={isFavorite ? "default" : "outline"}
+            size="sm"
+            className="flex-1"
+            disabled={statusLoading || addFavorite.isPending || removeFavorite.isPending}
+          >
+            <Heart 
+              className={`w-4 h-4 mr-1 ${isFavorite ? 'fill-current' : ''}`} 
+            />
+            {isFavorite ? 'Favorited' : 'Favorite'}
+          </Button>
+          <Button
+            onClick={handleVisitedClick}
+            variant={isVisited ? "default" : "outline"}
+            size="sm"
+            className="flex-1"
+            disabled={statusLoading || addVisited.isPending || removeVisited.isPending}
+          >
+            <Check 
+              className={`w-4 h-4 mr-1`} 
+            />
+            {isVisited ? 'Visited' : 'Mark Visited'}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function MapView({ currentLocation, activeFilters }: MapViewProps) {
   const mapRef = useRef<L.Map | null>(null);
@@ -110,8 +199,6 @@ export default function MapView({ currentLocation, activeFilters }: MapViewProps
         <MapUpdater location={currentLocation} />
         
         {venues.map((venue: Venue) => {
-          const IconComponent = getIcon(VENUE_TYPE_CONFIG[venue.type].icon);
-          
           return (
             <Marker
               key={venue.id}
@@ -119,27 +206,7 @@ export default function MapView({ currentLocation, activeFilters }: MapViewProps
               icon={createMarkerIcon(venue.type)}
             >
               <Popup>
-                <div className="p-3 min-w-64">
-                  <h3 className="font-semibold text-text-dark mb-2">{venue.name}</h3>
-                  <div className="flex items-center mb-2">
-                    <IconComponent 
-                      className="w-4 h-4 mr-2" 
-                      style={{ color: VENUE_TYPE_CONFIG[venue.type].color }}
-                    />
-                    <span className="text-sm text-gray-600">
-                      {VENUE_TYPE_CONFIG[venue.type].name}
-                    </span>
-                  </div>
-                  {venue.address && (
-                    <p className="text-sm text-gray-600 mb-2">
-                      <LucideIcons.MapPin className="w-3 h-3 inline mr-1" />
-                      {venue.address}
-                    </p>
-                  )}
-                  {venue.description && (
-                    <p className="text-sm text-gray-700">{venue.description}</p>
-                  )}
-                </div>
+                <VenuePopup venue={venue} />
               </Popup>
             </Marker>
           );
