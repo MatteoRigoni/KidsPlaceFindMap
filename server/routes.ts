@@ -115,7 +115,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { query } = locationSearchRequestSchema.parse(req.body);
       
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
+        {
+          headers: {
+            'User-Agent': 'KidFriendlyMaps/1.0 (https://replit.com)'
+          }
+        }
       );
 
       if (!response.ok) {
